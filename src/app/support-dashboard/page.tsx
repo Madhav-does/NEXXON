@@ -14,7 +14,9 @@ import {
   MessageSquare,
   Check,
   Globe,
-  Languages,
+  UserCheck,
+  Clock3,
+  Tag,
 } from 'lucide-react';
 
 const CANNED_RESPONSES = [
@@ -24,6 +26,13 @@ const CANNED_RESPONSES = [
   'We have issued a full refund to your original payment method. Please allow 2-3 business days.',
   'Is there anything else I can help clarify for you today?',
 ];
+
+interface TicketMeta {
+  status: 'unassigned' | 'claimed' | 'resolved';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  assignedTo: string | null;
+  slaMinutesRemaining: number;
+}
 
 export default function SupportDashboardPage() {
   const {
@@ -39,11 +48,28 @@ export default function SupportDashboardPage() {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [searchTicket, setSearchTicket] = useState('');
-  const [ticketFilter, setTicketFilter] = useState<'all' | 'open' | 'resolved'>('all');
-  const [ticketStatus, setTicketStatus] = useState<Record<string, 'open' | 'resolved'>>({
-    user_buyer_1: 'open',
-    user_seller_1: 'open',
-    user_seller_2: 'resolved',
+  const [ticketFilter, setTicketFilter] = useState<'all' | 'unassigned' | 'claimed' | 'resolved'>('all');
+
+  // Multi-agent Queue-based ticket state
+  const [tickets, setTickets] = useState<Record<string, TicketMeta>>({
+    user_buyer_1: {
+      status: 'claimed',
+      priority: 'high',
+      assignedTo: 'user_support_agent',
+      slaMinutesRemaining: 14,
+    },
+    user_seller_1: {
+      status: 'unassigned',
+      priority: 'urgent',
+      assignedTo: null,
+      slaMinutesRemaining: 6,
+    },
+    user_seller_2: {
+      status: 'resolved',
+      priority: 'medium',
+      assignedTo: 'user_support_agent',
+      slaMinutesRemaining: 0,
+    },
   });
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -51,6 +77,12 @@ export default function SupportDashboardPage() {
 
   const isSupportAgent = currentUser.role === 'support';
   const selectedCustomer = getUserById(selectedCustomerId);
+  const selectedTicket = tickets[selectedCustomerId] || {
+    status: 'unassigned',
+    priority: 'medium',
+    assignedTo: null,
+    slaMinutesRemaining: 30,
+  };
 
   const channelKey = selectedCustomerId ? getChannelKey(currentUser.id, selectedCustomerId) : '';
   const currentMessages = channelKey ? messagesByChannel[channelKey] || [] : [];
@@ -83,6 +115,11 @@ export default function SupportDashboardPage() {
     if (!selectedCustomerId) return;
     if (!inputText.trim() && !selectedImage) return;
 
+    // Automatically claim if replying while unassigned
+    if (selectedTicket.status === 'unassigned') {
+      claimTicket(selectedCustomerId);
+    }
+
     const textToSend = inputText.trim();
     const imageToSend = selectedImage;
 
@@ -94,6 +131,38 @@ export default function SupportDashboardPage() {
 
   const handleCannedResponse = (text: string) => {
     setInputText(text);
+  };
+
+  const claimTicket = (customerId: string) => {
+    setTickets((prev) => ({
+      ...prev,
+      [customerId]: {
+        ...(prev[customerId] || {
+          priority: 'medium',
+          slaMinutesRemaining: 25,
+        }),
+        status: 'claimed',
+        assignedTo: currentUser.id,
+      },
+    }));
+  };
+
+  const toggleResolved = (customerId: string) => {
+    setTickets((prev) => {
+      const current = prev[customerId];
+      const isResolved = current?.status === 'resolved';
+      return {
+        ...prev,
+        [customerId]: {
+          ...(current || {
+            priority: 'medium',
+            assignedTo: currentUser.id,
+            slaMinutesRemaining: 0,
+          }),
+          status: isResolved ? 'claimed' : 'resolved',
+        },
+      };
+    });
   };
 
   const customerList = MOCK_USERS.filter((u) => u.id !== 'user_support_agent');
@@ -133,7 +202,7 @@ export default function SupportDashboardPage() {
             <div>
               <h1 className="text-lg font-bold text-gray-900 dark:text-white">Support Agent Dispatch Center</h1>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                Real-time ticketing & multi-language translated customer support via Nexconn Chat
+                Queue-based customer dispatching, SLA tracking & multi-language translated resolution via Nexconn Chat
               </p>
             </div>
           </div>
@@ -141,15 +210,17 @@ export default function SupportDashboardPage() {
           <div className="flex items-center gap-6 text-xs">
             <div className="text-center sm:text-right">
               <span className="text-gray-400 dark:text-gray-500 block text-[10px] uppercase font-semibold">
-                Avg Response Time
+                SLA Compliance
               </span>
-              <span className="font-bold text-emerald-600 dark:text-emerald-400">&lt; 1.5 mins</span>
+              <span className="font-bold text-emerald-600 dark:text-emerald-400">98.8% on target</span>
             </div>
             <div className="text-center sm:text-right">
               <span className="text-gray-400 dark:text-gray-500 block text-[10px] uppercase font-semibold">
-                Satisfaction Rate
+                Unassigned Queue
               </span>
-              <span className="font-bold text-indigo-600 dark:text-indigo-400">99.2%</span>
+              <span className="font-bold text-amber-600 dark:text-amber-400">
+                {Object.values(tickets).filter((t) => t.status === 'unassigned').length} Pending
+              </span>
             </div>
             <div className="text-center sm:text-right">
               <span className="text-gray-400 dark:text-gray-500 block text-[10px] uppercase font-semibold">
@@ -165,33 +236,33 @@ export default function SupportDashboardPage() {
 
       {/* Main 3-Column Support Hub */}
       <div className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column: Customer Queue / Thread List (3.5 cols) */}
+        {/* Left Column: Customer Queue / Thread List (3.8 cols) */}
         <div className="lg:col-span-4 bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-200 dark:border-[#2d3148] shadow-xs flex flex-col overflow-hidden min-h-[500px] lg:h-[720px] transition-colors">
-          {/* Thread list search */}
+          {/* Thread list search & tabs */}
           <div className="p-4 border-b border-gray-100 dark:border-[#2d3148]">
             <div className="relative">
               <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Search inquiries or user..."
+                placeholder="Search ticket, customer or problem..."
                 value={searchTicket}
                 onChange={(e) => setSearchTicket(e.target.value)}
                 className="w-full text-xs pl-9 pr-3.5 py-2 bg-gray-50 dark:bg-[#22263a] border border-gray-200 dark:border-[#2d3148] text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 rounded-xl focus:border-indigo-500 outline-none transition"
               />
             </div>
 
-            <div className="flex items-center gap-1.5 mt-3 text-xs">
-              {(['all', 'open', 'resolved'] as const).map((tab) => (
+            <div className="flex items-center gap-1.5 mt-3 text-xs overflow-x-auto no-scrollbar">
+              {(['all', 'unassigned', 'claimed', 'resolved'] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setTicketFilter(tab)}
-                  className={`px-3 py-1 rounded-lg capitalize font-medium transition cursor-pointer ${
+                  className={`px-2.5 py-1 rounded-lg capitalize font-medium text-[11px] transition shrink-0 cursor-pointer ${
                     ticketFilter === tab
                       ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 font-semibold'
                       : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#22263a]'
                   }`}
                 >
-                  {tab}
+                  {tab === 'unassigned' ? 'Unassigned Queue' : tab}
                 </button>
               ))}
             </div>
@@ -204,9 +275,14 @@ export default function SupportDashboardPage() {
               const chKey = getChannelKey(currentUser.id, customer.id);
               const msgs = messagesByChannel[chKey] || [];
               const lastMsg = msgs[msgs.length - 1];
-              const status = ticketStatus[customer.id] || 'open';
+              const tMeta = tickets[customer.id] || {
+                status: 'unassigned',
+                priority: 'medium',
+                assignedTo: null,
+                slaMinutesRemaining: 20,
+              };
 
-              if (ticketFilter !== 'all' && status !== ticketFilter) {
+              if (ticketFilter !== 'all' && tMeta.status !== ticketFilter) {
                 return null;
               }
 
@@ -248,25 +324,37 @@ export default function SupportDashboardPage() {
                       {lastMsg ? lastMsg.text || 'Photo attachment' : 'No recent messages'}
                     </p>
 
-                    <div className="flex items-center gap-2 mt-1.5">
+                    <div className="flex items-center gap-1.5 mt-2 flex-wrap">
                       <span
                         className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase ${
-                          customer.role === 'buyer'
-                            ? 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300'
-                            : 'bg-purple-100 dark:bg-purple-950/70 text-purple-800 dark:text-purple-300'
+                          tMeta.status === 'unassigned'
+                            ? 'bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300'
+                            : tMeta.status === 'claimed'
+                            ? 'bg-blue-100 dark:bg-blue-950/70 text-blue-800 dark:text-blue-300'
+                            : 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300'
                         }`}
                       >
-                        {customer.role}
+                        {tMeta.status}
                       </span>
+
                       <span
-                        className={`text-[9px] px-1.5 py-0.5 rounded font-medium ${
-                          status === 'open'
-                            ? 'bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300'
+                        className={`text-[9px] px-1.5 py-0.5 rounded font-medium uppercase ${
+                          tMeta.priority === 'urgent'
+                            ? 'bg-red-100 dark:bg-red-950/70 text-red-800 dark:text-red-300 font-bold'
+                            : tMeta.priority === 'high'
+                            ? 'bg-orange-100 dark:bg-orange-950/70 text-orange-800 dark:text-orange-300'
                             : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
                         }`}
                       >
-                        {status === 'open' ? 'Needs Reply' : 'Resolved'}
+                        {tMeta.priority}
                       </span>
+
+                      {tMeta.status !== 'resolved' && (
+                        <span className="text-[9px] text-gray-400 dark:text-gray-500 flex items-center gap-0.5">
+                          <Clock3 className="w-2.5 h-2.5" />
+                          <span>{tMeta.slaMinutesRemaining}m SLA</span>
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -280,7 +368,7 @@ export default function SupportDashboardPage() {
           {selectedCustomer ? (
             <>
               {/* Conversation Top Header */}
-              <div className="p-4 border-b border-gray-100 dark:border-[#2d3148] flex items-center justify-between bg-white dark:bg-[#1a1d27]">
+              <div className="p-3.5 sm:p-4 border-b border-gray-100 dark:border-[#2d3148] flex items-center justify-between bg-white dark:bg-[#1a1d27]">
                 <div className="flex items-center gap-3">
                   <img
                     src={selectedCustomer.avatar}
@@ -299,27 +387,30 @@ export default function SupportDashboardPage() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={() =>
-                      setTicketStatus((prev) => ({
-                        ...prev,
-                        [selectedCustomer.id]:
-                          prev[selectedCustomer.id] === 'open' ? 'resolved' : 'open',
-                      }))
-                    }
-                    className={`text-xs px-3 py-1.5 rounded-xl font-medium transition flex items-center gap-1 cursor-pointer ${
-                      ticketStatus[selectedCustomer.id] === 'resolved'
-                        ? 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-200 dark:hover:bg-emerald-900'
-                        : 'bg-gray-100 dark:bg-[#22263a] text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-                    }`}
-                  >
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>
-                      {ticketStatus[selectedCustomer.id] === 'resolved'
-                        ? 'Resolved'
-                        : 'Mark Resolved'}
-                    </span>
-                  </button>
+                  {/* Claim Button for unassigned tickets */}
+                  {selectedTicket.status === 'unassigned' ? (
+                    <button
+                      onClick={() => claimTicket(selectedCustomerId)}
+                      className="text-xs px-3 py-1.5 rounded-xl font-semibold bg-indigo-600 hover:bg-indigo-700 text-white transition flex items-center gap-1 shadow-xs cursor-pointer"
+                    >
+                      <UserCheck className="w-3.5 h-3.5" />
+                      <span>Claim Ticket</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => toggleResolved(selectedCustomerId)}
+                      className={`text-xs px-3 py-1.5 rounded-xl font-medium transition flex items-center gap-1 cursor-pointer ${
+                        selectedTicket.status === 'resolved'
+                          ? 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-200 dark:hover:bg-emerald-900'
+                          : 'bg-gray-100 dark:bg-[#22263a] text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                      }`}
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>
+                        {selectedTicket.status === 'resolved' ? 'Resolved' : 'Mark Resolved'}
+                      </span>
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -495,7 +586,7 @@ export default function SupportDashboardPage() {
           )}
         </div>
 
-        {/* Right Column: Customer Profile & Order Context (3.5 cols) */}
+        {/* Right Column: Customer Profile & Order Context (3.2 cols) */}
         <div className="lg:col-span-3 bg-white dark:bg-[#1a1d27] rounded-2xl border border-gray-200 dark:border-[#2d3148] shadow-xs p-5 flex flex-col justify-between min-h-[500px] lg:h-[720px] overflow-y-auto transition-colors">
           {selectedCustomer ? (
             <div className="space-y-6">
@@ -508,12 +599,12 @@ export default function SupportDashboardPage() {
                 />
                 <h3 className="font-bold text-sm text-gray-900 dark:text-white">{selectedCustomer.name}</h3>
                 <p className="text-xs text-gray-500 dark:text-gray-400">{selectedCustomer.email}</p>
-                <div className="mt-2.5 flex items-center justify-center gap-1.5">
+                <div className="mt-2.5 flex items-center justify-center gap-1.5 flex-wrap">
                   <span className="text-[10px] bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 font-bold px-2 py-0.5 rounded-full uppercase">
                     {selectedCustomer.role}
                   </span>
-                  <span className="text-[10px] bg-blue-100 dark:bg-blue-950/70 text-blue-800 dark:text-blue-300 font-medium px-2 py-0.5 rounded-full">
-                    Verified Customer
+                  <span className="text-[10px] bg-indigo-100 dark:bg-indigo-950/70 text-indigo-800 dark:text-indigo-300 font-semibold px-2 py-0.5 rounded-full">
+                    {selectedTicket.status.toUpperCase()}
                   </span>
                 </div>
               </div>
@@ -560,7 +651,7 @@ export default function SupportDashboardPage() {
                     <strong>Transport:</strong> WebSocket Engine
                   </p>
                   <p>
-                    <strong>Translation Engine:</strong> Active (Multi-Language)
+                    <strong>Queue Routing:</strong> Active (SLA {selectedTicket.slaMinutesRemaining}m)
                   </p>
                 </div>
               </div>

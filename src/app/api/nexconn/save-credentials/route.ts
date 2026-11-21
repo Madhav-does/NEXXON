@@ -13,28 +13,35 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const envPath = path.join(process.cwd(), '.env.local');
     const baseUrl = apiBaseUrl || 'api.sg-light-api.com';
 
-    const envContent = `# Nexconn Chat Application Credentials
+    // Update in-memory environment variables immediately
+    process.env.NEXT_PUBLIC_NEXCONN_APP_KEY = appKey.trim();
+    process.env.NEXCONN_APP_KEY = appKey.trim();
+    process.env.NEXCONN_APP_SECRET = appSecret.trim();
+    process.env.NEXCONN_API_BASE_URL = baseUrl.trim();
+
+    // In local development, write to .env.local if the file system is writable
+    const isProduction = process.env.NODE_ENV === 'production';
+    if (!isProduction) {
+      try {
+        const envPath = path.join(process.cwd(), '.env.local');
+        const envContent = `# Nexconn Chat Application Credentials
 # Updated via Nexconn Setup Assistant
 NEXT_PUBLIC_NEXCONN_APP_KEY=${appKey.trim()}
 NEXCONN_APP_SECRET=${appSecret.trim()}
 NEXCONN_API_BASE_URL=${baseUrl.trim()}
 NEXT_PUBLIC_NEXCONN_DATA_CENTER=SG
 `;
-
-    fs.writeFileSync(envPath, envContent, 'utf8');
-
-    // Update current process env for immediate runtime access
-    process.env.NEXT_PUBLIC_NEXCONN_APP_KEY = appKey.trim();
-    process.env.NEXCONN_APP_KEY = appKey.trim();
-    process.env.NEXCONN_APP_SECRET = appSecret.trim();
-    process.env.NEXCONN_API_BASE_URL = baseUrl.trim();
+        fs.writeFileSync(envPath, envContent, 'utf8');
+      } catch (fsErr) {
+        console.warn('[Credentials Write Skipped - Read Only Environment]', fsErr);
+      }
+    }
 
     return NextResponse.json({
       success: true,
-      message: 'Credentials saved successfully to .env.local',
+      message: 'Credentials updated successfully for current runtime.',
       appKeyPrefix: `${appKey.slice(0, 4)}...`,
     });
   } catch (error: any) {
