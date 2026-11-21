@@ -224,6 +224,10 @@ export const ChatDrawer: React.FC = () => {
                 <img
                   src={activeProductContext.image}
                   alt={activeProductContext.title}
+                  onError={(e) => {
+                    e.currentTarget.src =
+                      'https://images.unsplash.com/photo-1505797149-43b0069ec26b?auto=format&fit=crop&w=800&q=80';
+                  }}
                   className="w-12 h-12 object-cover rounded-lg border border-gray-100 dark:border-gray-700"
                 />
                 <div className="flex-1 min-w-0">

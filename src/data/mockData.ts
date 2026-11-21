@@ -95,7 +95,7 @@ export const MOCK_PRODUCTS: Product[] = [
     description:
       'Engineered with ergonomics specialists to promote natural alignment and healthy circulation during long working sessions. Fully adjustable arms.',
     image:
-      'https://images.unsplash.com/photo-1580481077195-c3a821a5060f?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1505797149-43b0069ec26b?auto=format&fit=crop&w=800&q=80',
     sellerId: 'user_seller_2',
     rating: 5.0,
     reviewCount: 19,
