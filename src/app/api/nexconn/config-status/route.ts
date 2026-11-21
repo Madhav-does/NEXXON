@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 
 export async function GET() {
-  const appKey = process.env.NEXT_PUBLIC_NEXCONN_APP_KEY || process.env.NEXCONN_APP_KEY;
-  const appSecret = process.env.NEXCONN_APP_SECRET;
+  const defaultAppKey = 'tdrvipkstz555';
+  const defaultAppSecret = 'AjbT4g9GVo45';
+  const appKey = process.env.NEXT_PUBLIC_NEXCONN_APP_KEY || process.env.NEXCONN_APP_KEY || defaultAppKey;
+  const appSecret = process.env.NEXCONN_APP_SECRET || defaultAppSecret;
 
   const hasAppKey = Boolean(appKey && appKey !== 'YOUR_APP_KEY');
   const hasAppSecret = Boolean(appSecret && appSecret !== 'YOUR_APP_SECRET');

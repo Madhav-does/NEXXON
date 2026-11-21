@@ -411,7 +411,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (typeof window !== 'undefined') {
           const { NCEngine, LogLevel, ConnectionStatusHandler, MessageHandler, ConnectionStatus, AreaCode } = await import('@nexconn/chat');
 
-          const appKey = process.env.NEXT_PUBLIC_NEXCONN_APP_KEY || configStatus.appKey || undefined;
+          const appKey = process.env.NEXT_PUBLIC_NEXCONN_APP_KEY || configStatus.appKey || 'tdrvipkstz555';
           if (!engineInitializedRef.current && appKey) {
             NCEngine.initialize({
               appKey: appKey,

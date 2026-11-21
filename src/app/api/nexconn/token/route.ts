@@ -19,11 +19,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const appKey = process.env.NEXT_PUBLIC_NEXCONN_APP_KEY || process.env.NEXCONN_APP_KEY;
-    const appSecret = process.env.NEXCONN_APP_SECRET;
+    const defaultAppKey = 'tdrvipkstz555';
+    const defaultAppSecret = 'AjbT4g9GVo45';
+    const appKey = process.env.NEXT_PUBLIC_NEXCONN_APP_KEY || process.env.NEXCONN_APP_KEY || defaultAppKey;
+    const appSecret = process.env.NEXCONN_APP_SECRET || defaultAppSecret;
     const apiBaseUrl = process.env.NEXCONN_API_BASE_URL || 'api.sg-light-api.com';
 
-    // Verify if environment variables are configured
+    // Verify if environment variables or defaults are configured
     const isConfigured =
       !!appKey &&
       !!appSecret &&
