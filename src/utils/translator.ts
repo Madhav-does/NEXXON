@@ -45,14 +45,14 @@ const PHRASE_DICTIONARY: Record<string, Record<string, string>> = {
     ar: 'نعم! يتضمن أغطية مفاتيح macOS و Windows، بالإضافة إلى أداة سحب المفاتيح وسلك Type-C مجدول.',
     hi: 'हाँ! इसमें macOS और Windows दोनों कीकैप, साथ ही एक स्विच पुलर और ब्रेडेड टाइप-सी केबल शामिल हैं।',
   },
-  'hi there! we offer free white-glove delivery on the herman miller embody chair.': {
-    es: '¡Hola! Ofrecemos entrega de guante blanco gratuita para la silla Herman Miller Embody.',
-    fr: 'Bonjour ! Nous offrons la livraison spéciale gratuite pour la chaise Herman Miller Embody.',
-    de: 'Hallo! Wir bieten kostenlose Premium-Lieferung für den Herman Miller Embody Stuhl.',
-    ja: 'こんにちは！Herman Miller Embodyチェアは無料の設置配送サービスをご利用いただけます。',
-    zh: '您好！我们对赫曼米勒 (Herman Miller) Embody 人体工学椅提供免费送货上门安装服务。',
-    ar: 'مرحباً! نقدم خدمة توصيل وتركيب مجانية لكرسي Herman Miller Embody.',
-    hi: 'नमस्ते! हम हरमन मिलर एम्बॉडी चेयर पर मुफ्त वाइट-ग्लव डिलीवरी प्रदान करते हैं।',
+  'hi there! we offer free expedited delivery on the dell ultrasharp 4k monitor.': {
+    es: '¡Hola! Ofrecemos entrega urgente gratuita para el monitor Dell UltraSharp 4K.',
+    fr: 'Bonjour ! Nous offrons la livraison express gratuite pour le moniteur Dell UltraSharp 4K.',
+    de: 'Hallo! Wir bieten kostenlose Express-Lieferung für den Dell UltraSharp 4K Monitor.',
+    ja: 'こんにちは！Dell UltraSharp 4Kモニターは無料のエクスプレス配送をご利用いただけます。',
+    zh: '您好！我们对戴尔 UltraSharp 4K 显示器提供免费加急送货服务。',
+    ar: 'مرحباً! نقدم خدمة توصيل سريع مجانية لشاشة Dell UltraSharp 4K.',
+    hi: 'नमस्ते! हम डेल अल्ट्राशार्प 4K मॉनिटर पर मुफ्त त्वरित डिलीवरी प्रदान करते हैं।',
   },
   'welcome to nexxon support! how can we assist you with your marketplace order today?': {
     es: '¡Bienvenido a Soporte Nexxon! ¿Cómo podemos ayudarte con tu pedido del mercado hoy?',

@@ -27,10 +27,10 @@ const CATEGORIES = [
   'All',
   'Electronics',
   'Audio',
+  'Displays',
   'Vintage Fashion',
   'Workwear',
   'Photography',
-  'Furniture',
   'Workspace',
 ];
 
@@ -306,33 +306,33 @@ export default function MarketplacePage() {
             </div>
           </div>
 
-          {/* Capsule 3: Minimalist Workspace & Ergonomics */}
+          {/* Capsule 3: Minimalist Workspace & Displays */}
           <div className="bg-white dark:bg-[#18191e] border border-[#e3dfd7] dark:border-[#27282f] p-6 flex flex-col justify-between group hover:border-[#c86d51] transition-colors">
             <div>
               <div className="relative aspect-16/10 overflow-hidden mb-4 bg-gray-100 dark:bg-gray-800">
                 <img
-                  src="https://images.unsplash.com/photo-1580481077195-c3a821a5060f?auto=format&fit=crop&w=800&q=80"
-                  alt="Ergonomic Furniture & Workspace Design"
+                  src="https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?auto=format&fit=crop&w=800&q=80"
+                  alt="Minimalist Workspace & UltraSharp Displays"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
                 <span className="absolute top-2 left-2 bg-[#111215] text-[#c86d51] px-2 py-0.5 font-mono-tag text-[10px] uppercase font-bold tracking-wider">
-                  Drop 03 • Workspace Design
+                  Drop 03 • Workspace &amp; Displays
                 </span>
               </div>
               <span className="font-mono-tag text-[10px] uppercase text-[#6f6a62] dark:text-[#a39e94] block mb-1">
                 Curated by TechCraft Workspace
               </span>
               <h3 className="font-editorial text-xl uppercase tracking-tight mb-2">
-                Herman Miller Embody &amp; Walnut Storage
+                UltraSharp 4K &amp; Walnut Storage
               </h3>
               <p className="text-xs text-[#6f6a62] dark:text-[#a39e94] leading-relaxed mb-4">
-                Certified refurbished ergonomic chairs, UltraSharp 4K color monitors, and solid American walnut organizers.
+                Dell UltraSharp 32&quot; 4K USB-C color-accurate monitors and handcrafted solid American walnut organizers.
               </p>
             </div>
             <div className="flex items-center justify-between font-mono-tag text-xs pt-3 border-t border-[#e3dfd7] dark:border-[#27282f]">
-              <span className="text-[#c86d51] font-semibold">$89 — $1,245 USD</span>
+              <span className="text-[#c86d51] font-semibold">$89 — $689 USD</span>
               <button
-                onClick={() => setSelectedCategory('Furniture')}
+                onClick={() => setSelectedCategory('Workspace')}
                 className="text-[#111215] dark:text-[#f9f8f6] hover:text-[#c86d51] uppercase tracking-wider flex items-center gap-1 cursor-pointer"
               >
                 Browse Drop →
