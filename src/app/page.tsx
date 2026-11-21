@@ -439,9 +439,6 @@ export default function MarketplacePage() {
                   <img
                     src={product.image}
                     alt={product.title}
-                  <img
-                    src={product.image}
-                    alt={product.title}
                     onError={(e) => {
                       e.currentTarget.src =
                         'https://images.unsplash.com/photo-1505797149-43b0069ec26b?auto=format&fit=crop&w=800&q=80';
