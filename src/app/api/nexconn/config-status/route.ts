@@ -9,10 +9,12 @@ export async function GET() {
   const isConfigured = hasAppKey && hasAppSecret;
 
   // STRICT SECURITY: Never return NEXCONN_APP_SECRET!
+  // App-Key is public and safe to return
   return NextResponse.json({
     isConfigured,
     hasAppKey,
     hasAppSecret,
+    appKey: hasAppKey ? appKey : null,
     appKeyPrefix: hasAppKey && appKey ? `${appKey.slice(0, 4)}...` : null,
     baseUrl: process.env.NEXCONN_API_BASE_URL || 'api.sg-light-api.com',
   });

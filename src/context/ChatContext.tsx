@@ -34,6 +34,7 @@ interface ConfigStatus {
   isConfigured: boolean;
   hasAppKey: boolean;
   hasAppSecret: boolean;
+  appKey: string | null;
   appKeyPrefix: string | null;
   baseUrl: string;
 }
@@ -96,6 +97,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isConfigured: false,
     hasAppKey: false,
     hasAppSecret: false,
+    appKey: null,
     appKeyPrefix: null,
     baseUrl: 'api.sg-light-api.com',
   });
@@ -333,13 +335,14 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         activeTokenRef.current = accessToken;
 
         if (typeof window !== 'undefined') {
-          const { NCEngine, LogLevel, ConnectionStatusHandler, MessageHandler, ConnectionStatus } = await import('@nexconn/chat');
+          const { NCEngine, LogLevel, ConnectionStatusHandler, MessageHandler, ConnectionStatus, AreaCode } = await import('@nexconn/chat');
 
-          const appKey = process.env.NEXT_PUBLIC_NEXCONN_APP_KEY || configStatus.appKeyPrefix || undefined;
+          const appKey = process.env.NEXT_PUBLIC_NEXCONN_APP_KEY || configStatus.appKey || undefined;
           if (!engineInitializedRef.current && appKey) {
             NCEngine.initialize({
               appKey: appKey,
               logLevel: LogLevel.DEBUG,
+              areaCode: AreaCode.SG,
             });
             engineInitializedRef.current = true;
 
