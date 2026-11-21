@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'NEXXON Marketplace & Customer Support — Real-time Nexconn Chat',
+  title: 'NEXXON Marketplace & Customer Support — Real-time Multi-Lingual Nexconn Chat',
   description:
-    'Full-stack Marketplace and Customer Support web application built with Next.js App Router, Tailwind CSS, and the Nexconn Chat Web SDK.',
+    'Full-stack Marketplace and Customer Support web application built with Next.js App Router, Tailwind CSS, multi-language translation, and the Nexconn Chat Web SDK.',
 };
 
 export default function RootLayout({
@@ -25,8 +25,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col font-sans">
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+    >
+      <body className="min-h-full flex flex-col font-sans bg-white dark:bg-[#0f1117] text-gray-900 dark:text-gray-100 transition-colors">
         <ClientProviders>{children}</ClientProviders>
       </body>
     </html>
