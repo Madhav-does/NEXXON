@@ -204,23 +204,23 @@ export default function MessagesPage() {
                   <div className="flex bg-gray-100 dark:bg-[#22263a] p-0.5 rounded-lg text-xs font-medium">
                     <button
                       onClick={() => setViewMode('custom')}
-                      className={`px-3 py-1 rounded-md transition ${
+                      className={`px-3 py-1 rounded-md transition cursor-pointer ${
                         viewMode === 'custom'
                           ? 'bg-white dark:bg-[#1a1d27] shadow-xs text-blue-600 dark:text-blue-400 font-semibold'
                           : 'text-gray-600 dark:text-gray-400'
                       }`}
                     >
-                      Custom View
+                      Live Chat (SDK)
                     </button>
                     <button
                       onClick={() => setViewMode('chatui')}
-                      className={`px-3 py-1 rounded-md transition ${
+                      className={`px-3 py-1 rounded-md transition cursor-pointer ${
                         viewMode === 'chatui'
                           ? 'bg-white dark:bg-[#1a1d27] shadow-xs text-blue-600 dark:text-blue-400 font-semibold'
                           : 'text-gray-600 dark:text-gray-400'
                       }`}
                     >
-                      Nexconn ChatUI
+                      Web Component
                     </button>
                   </div>
                 </div>

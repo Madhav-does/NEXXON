@@ -169,7 +169,7 @@ export const ChatDrawer: React.FC = () => {
                     : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
-                Custom UI
+                Live Chat (SDK)
               </button>
               <button
                 onClick={() => setViewMode('chatui')}
@@ -179,7 +179,7 @@ export const ChatDrawer: React.FC = () => {
                     : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
-                Nexconn ChatUI
+                Web Component
               </button>
             </div>
 
