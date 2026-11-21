@@ -24,19 +24,19 @@ export async function POST(req: NextRequest) {
     const apiBaseUrl = process.env.NEXCONN_API_BASE_URL || 'api.sg-light-api.com';
 
     // Verify if environment variables are configured
-    const isPlaceholder =
-      !appKey ||
-      !appSecret ||
-      appKey === 'YOUR_APP_KEY' ||
-      appSecret === 'YOUR_APP_SECRET';
+    const isConfigured =
+      !!appKey &&
+      !!appSecret &&
+      appKey !== 'YOUR_APP_KEY' &&
+      appSecret !== 'YOUR_APP_SECRET';
 
-    if (isPlaceholder) {
+    if (!isConfigured) {
       return NextResponse.json(
         {
           code: 4001,
           isConfigured: false,
           message:
-            'Nexconn credentials are not configured. Please set NEXT_PUBLIC_NEXCONN_APP_KEY and NEXCONN_APP_SECRET in .env.local.',
+            'Nexconn credentials are not configured. Please set NEXT_PUBLIC_NEXCONN_APP_KEY and NEXCONN_APP_SECRET.',
           userId,
         },
         { status: 400 }
@@ -91,8 +91,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Successful response format from Nexconn:
-    // { code: 0, result: { userId: "...", accessToken: "..." } }
     const accessToken = result.result?.accessToken || result.accessToken || result.token;
 
     return NextResponse.json({

@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { MOCK_USERS, MockUser, Product, getUserById } from '@/data/mockData';
+import { detectLanguage, translateText } from '@/utils/translator';
 
 export interface ChatMessage {
   id: string;
@@ -20,6 +21,11 @@ export interface ChatMessage {
     price: number;
     image: string;
   };
+  // Multi-language translation support
+  language?: string;
+  originalText?: string;
+  translatedText?: string;
+  isShowingOriginal?: boolean;
 }
 
 export type ConnectionStatus = 'DISCONNECTED' | 'CONNECTING' | 'CONNECTED' | 'ERROR' | 'UNCONFIGURED';
@@ -57,6 +63,14 @@ interface ChatContextType {
   // Messages
   messagesByChannel: Record<string, ChatMessage[]>;
   sendMessage: (targetUserId: string, text?: string, imageFile?: File, productContext?: Product) => Promise<boolean>;
+
+  // Translation features
+  preferredLanguage: string;
+  setPreferredLanguage: (lang: string) => void;
+  autoTranslate: boolean;
+  setAutoTranslate: (enabled: boolean) => void;
+  toggleMessageOriginal: (channelKey: string, messageId: string) => void;
+  translateMessageManually: (channelKey: string, messageId: string, targetLang: string) => void;
   
   // Credentials modal
   isCredentialsModalOpen: boolean;
@@ -95,6 +109,10 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isCredentialsModalOpen, setIsCredentialsModalOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'custom' | 'chatui'>('custom');
 
+  // Translation state
+  const [preferredLanguage, setPreferredLanguage] = useState<string>('en');
+  const [autoTranslate, setAutoTranslate] = useState<boolean>(true);
+
   // Messages keyed by channel: getChannelKey(userA, userB)
   const [messagesByChannel, setMessagesByChannel] = useState<Record<string, ChatMessage[]>>({});
 
@@ -123,7 +141,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     refreshConfig();
   }, [refreshConfig]);
 
-  // Seed default demonstration messages so the user can immediately experience conversation history
+  // Seed default demonstration messages including multi-language conversations
   useEffect(() => {
     const buyerId = 'user_buyer_1';
     const seller1Id = 'user_seller_1';
@@ -152,6 +170,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
             timestamp: now - 3600000 * 2,
             status: 'sent',
             isMe: false,
+            language: 'en',
             productContext: {
               id: 'prod_1',
               title: 'Keychron Q1 Pro Custom Wireless Mechanical Keyboard',
@@ -166,6 +185,10 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
             senderAvatar: getUserById(buyerId)?.avatar,
             targetId: seller1Id,
             text: 'Awesome! Does it come with Mac and Windows keycaps in the box?',
+            originalText: '¡Genial! ¿Viene con teclas para Mac y Windows en la caja?',
+            translatedText: 'Awesome! Does it come with Mac and Windows keycaps in the box?',
+            language: 'es',
+            isShowingOriginal: false,
             timestamp: now - 3600000 * 1.5,
             status: 'sent',
             isMe: true,
@@ -181,6 +204,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
             timestamp: now - 3600000 * 1,
             status: 'sent',
             isMe: false,
+            language: 'en',
           },
         ],
         [channelBuyerSeller2]: [
@@ -191,6 +215,10 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
             senderAvatar: getUserById(seller2Id)?.avatar,
             targetId: buyerId,
             text: 'Hi there! We offer free white-glove delivery on the Herman Miller Embody chair.',
+            originalText: 'Bonjour ! Nous offrons la livraison spéciale gratuite pour la chaise Herman Miller Embody.',
+            translatedText: 'Hi there! We offer free white-glove delivery on the Herman Miller Embody chair.',
+            language: 'fr',
+            isShowingOriginal: false,
             timestamp: now - 86400000,
             status: 'sent',
             isMe: false,
@@ -207,11 +235,67 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
             timestamp: now - 1800000,
             status: 'sent',
             isMe: false,
+            language: 'en',
+          },
+          {
+            id: 'demo-msg-6',
+            senderId: buyerId,
+            senderName: 'Alex Rivera',
+            senderAvatar: getUserById(buyerId)?.avatar,
+            targetId: supportId,
+            text: 'I ordered the Keychron Q1 Pro keyboard yesterday. Can you verify shipping status?',
+            originalText: '¿Cuál es el tiempo estimado de entrega para el teclado Keychron Q1 Pro?',
+            translatedText: 'What is the estimated delivery time for the Keychron Q1 Pro keyboard?',
+            language: 'es',
+            isShowingOriginal: false,
+            timestamp: now - 900000,
+            status: 'sent',
+            isMe: true,
           },
         ],
       };
     });
   }, []);
+
+  // Toggle message original/translated view
+  const toggleMessageOriginal = useCallback((channelKey: string, messageId: string) => {
+    setMessagesByChannel((prev) => {
+      const channelMsgs = prev[channelKey];
+      if (!channelMsgs) return prev;
+      return {
+        ...prev,
+        [channelKey]: channelMsgs.map((m) =>
+          m.id === messageId ? { ...m, isShowingOriginal: !m.isShowingOriginal } : m
+        ),
+      };
+    });
+  }, []);
+
+  // Translate message manually to target language
+  const translateMessageManually = useCallback(
+    (channelKey: string, messageId: string, targetLang: string) => {
+      setMessagesByChannel((prev) => {
+        const channelMsgs = prev[channelKey];
+        if (!channelMsgs) return prev;
+        return {
+          ...prev,
+          [channelKey]: channelMsgs.map((m) => {
+            if (m.id !== messageId) return m;
+            const source = m.originalText || m.text || '';
+            const translated = translateText(source, targetLang);
+            return {
+              ...m,
+              originalText: m.originalText || m.text,
+              translatedText: translated,
+              text: translated,
+              isShowingOriginal: false,
+            };
+          }),
+        };
+      });
+    },
+    []
+  );
 
   // Connect user to Nexconn Chat SDK when credentials are valid
   const connectUserToNexconn = useCallback(
@@ -226,7 +310,6 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setStatusMessage(`Requesting secure token for ${user.name}...`);
 
       try {
-        // Step 1: Request token from backend API
         const tokenRes = await fetch('/api/nexconn/token', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -249,7 +332,6 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const accessToken = tokenData.token;
         activeTokenRef.current = accessToken;
 
-        // Step 2: Initialize Nexconn Chat Engine (only once)
         if (typeof window !== 'undefined') {
           const { NCEngine, LogLevel, ConnectionStatusHandler, MessageHandler, ConnectionStatus } = await import('@nexconn/chat');
 
@@ -261,7 +343,6 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
             });
             engineInitializedRef.current = true;
 
-            // Register connection status listener
             NCEngine.addConnectionStatusHandler(
               'global-status-handler',
               new ConnectionStatusHandler({
@@ -281,7 +362,6 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
               })
             );
 
-            // Register global message listener
             NCEngine.addMessageHandler(
               'global-message-handler',
               new MessageHandler({
@@ -307,13 +387,21 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         imageUrl = (msg.content as any).remoteUrl || (msg.content as any).thumbnailBase64;
                       }
 
+                      const detected = detectLanguage(text);
+                      const shouldTranslate = autoTranslate && detected !== preferredLanguage && text;
+                      const translated = shouldTranslate ? translateText(text, preferredLanguage) : undefined;
+
                       const newMsg: ChatMessage = {
                         id: msg.messageId || `remote-${Date.now()}-${Math.random()}`,
                         senderId,
                         senderName: sender?.name || `User ${senderId}`,
                         senderAvatar: sender?.avatar,
                         targetId: currentUserId,
-                        text,
+                        text: shouldTranslate ? translated : text,
+                        originalText: shouldTranslate ? text : undefined,
+                        translatedText: translated,
+                        language: detected,
+                        isShowingOriginal: false,
                         imageUrl,
                         timestamp: msg.sentTime || Date.now(),
                         status: 'sent',
@@ -321,7 +409,6 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
                       };
 
                       const existing = next[channelKey] || [];
-                      // Prevent duplicate message by id
                       if (!existing.some((m) => m.id === newMsg.id)) {
                         next[channelKey] = [...existing, newMsg];
                       }
@@ -333,11 +420,10 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
             );
           }
 
-          // Step 3: Disconnect previous session if any, then connect
           try {
             await NCEngine.disconnect();
           } catch (e) {
-            // ignore disconnect errors
+            // ignore
           }
 
           const connResult = await NCEngine.connect({ token: accessToken });
@@ -356,10 +442,9 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setStatusMessage(err.message || 'Connection exception');
       }
     },
-    [configStatus]
+    [configStatus, autoTranslate, preferredLanguage]
   );
 
-  // Switch User
   const setCurrentUser = useCallback(
     (user: MockUser) => {
       setCurrentUserInternal(user);
@@ -368,14 +453,12 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     [connectUserToNexconn]
   );
 
-  // When configStatus changes to configured, auto connect current user
   useEffect(() => {
     if (configStatus.isConfigured) {
       connectUserToNexconn(currentUser);
     }
   }, [configStatus.isConfigured, connectUserToNexconn, currentUser]);
 
-  // Save Credentials from in-app assistant
   const saveCredentials = async (appKey: string, appSecret: string, baseUrl?: string): Promise<boolean> => {
     try {
       const res = await fetch('/api/nexconn/save-credentials', {
@@ -395,7 +478,6 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Open Direct 1:1 Chat
   const openDirectChat = useCallback(
     (targetUserId: string, product?: Product) => {
       const targetUser = getUserById(targetUserId);
@@ -412,7 +494,6 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsChatDrawerOpen(false);
   }, []);
 
-  // Open Support Chat Widget
   const openSupportChat = useCallback((initialMessage?: string) => {
     const supportAgent = getUserById('user_support_agent');
     if (supportAgent) {
@@ -426,7 +507,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsSupportWidgetOpen(false);
   }, []);
 
-  // Send message (via live Nexconn SDK if connected, with optimistic state update)
+  // Send message with automatic language detection and translation support
   const sendMessage = async (
     targetUserId: string,
     text?: string,
@@ -443,6 +524,8 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       previewUrl = URL.createObjectURL(imageFile);
     }
 
+    const detected = text ? detectLanguage(text) : undefined;
+
     const optimisticMsg: ChatMessage = {
       id: tempId,
       senderId: currentUser.id,
@@ -454,6 +537,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       timestamp: Date.now(),
       status: 'sending',
       isMe: true,
+      language: detected,
       productContext: productContext
         ? {
             id: productContext.id,
@@ -464,13 +548,11 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         : undefined,
     };
 
-    // Add optimistic message to state
     setMessagesByChannel((prev) => ({
       ...prev,
       [channelKey]: [...(prev[channelKey] || []), optimisticMsg],
     }));
 
-    // If live Nexconn Chat SDK is connected, send through SDK
     if (connectionStatus === 'CONNECTED' && typeof window !== 'undefined') {
       try {
         const { DirectChannel, SendTextMessageParams, Helper } = await import('@nexconn/chat');
@@ -515,19 +597,29 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         [channelKey]: (prev[channelKey] || []).map((m) => (m.id === tempId ? { ...m, status: 'sent' } : m)),
       }));
 
-      // If user is chatting with support agent or seller in demo mode, auto-reply after 2 seconds!
+      // Auto-reply in demo mode with intelligent translation
       if (!configStatus.isConfigured) {
         setTimeout(() => {
           const target = getUserById(targetUserId);
           if (target && target.role === 'support') {
             const replyId = `reply-${Date.now()}`;
+            const englishReply = `Thanks for messaging support! Agent Emma has received: "${text || 'your attachment'}". In demo mode, Nexconn credentials enable live multi-language WebSocket delivery.`;
+            const replyText =
+              preferredLanguage !== 'en' && autoTranslate
+                ? translateText(englishReply, preferredLanguage)
+                : englishReply;
+
             const supportReply: ChatMessage = {
               id: replyId,
               senderId: targetUserId,
               senderName: target.name,
               senderAvatar: target.avatar,
               targetId: currentUser.id,
-              text: `Thanks for messaging support! Agent Emma has received: "${text || 'your attachment'}". In demo mode, Nexconn credentials are required for live server delivery.`,
+              text: replyText,
+              originalText: preferredLanguage !== 'en' ? englishReply : undefined,
+              translatedText: preferredLanguage !== 'en' ? replyText : undefined,
+              language: 'en',
+              isShowingOriginal: false,
               timestamp: Date.now(),
               status: 'sent',
               isMe: false,
@@ -538,13 +630,23 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }));
           } else if (target && target.role === 'seller') {
             const replyId = `reply-${Date.now()}`;
+            const rawSellerReply = `Thanks for your interest in our products! We ship within 24 hours of payment. Feel free to ask any other questions!`;
+            const sellerReplyText =
+              preferredLanguage !== 'en' && autoTranslate
+                ? translateText(rawSellerReply, preferredLanguage)
+                : rawSellerReply;
+
             const sellerReply: ChatMessage = {
               id: replyId,
               senderId: targetUserId,
               senderName: target.name,
               senderAvatar: target.avatar,
               targetId: currentUser.id,
-              text: `Thanks for your interest in our products! We ship within 24 hours of payment. Feel free to ask any other questions!`,
+              text: sellerReplyText,
+              originalText: preferredLanguage !== 'en' ? rawSellerReply : undefined,
+              translatedText: preferredLanguage !== 'en' ? sellerReplyText : undefined,
+              language: 'en',
+              isShowingOriginal: false,
               timestamp: Date.now(),
               status: 'sent',
               isMe: false,
@@ -554,9 +656,9 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
               [channelKey]: [...(prev[channelKey] || []), sellerReply],
             }));
           }
-        }, 1500);
+        }, 1200);
       }
-    }, 400);
+    }, 350);
 
     return true;
   };
@@ -582,6 +684,12 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         supportUnreadCount,
         messagesByChannel,
         sendMessage,
+        preferredLanguage,
+        setPreferredLanguage,
+        autoTranslate,
+        setAutoTranslate,
+        toggleMessageOriginal,
+        translateMessageManually,
         isCredentialsModalOpen,
         setIsCredentialsModalOpen,
         viewMode,

@@ -12,9 +12,11 @@
     "@nexconn/chat": "^26.5.1",
     "@nexconn/chatui": "^26.5.0",
     "@nexconn/engine": "^26.5.1",
+    "@prisma/client": "^6.19.3",
     "lit": "^3.3.2",
     "lucide-react": "^1.77.0",
     "next": "16.4.6",
+    "prisma": "^6.19.3",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },

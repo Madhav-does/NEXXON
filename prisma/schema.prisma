@@ -1,0 +1,113 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  BUYER
+  SELLER
+  SUPPORT_AGENT
+  ADMIN
+}
+
+enum TicketStatus {
+  OPEN
+  CLAIMED
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model User {
+  id              String          @id @default(cuid())
+  name            String
+  email           String          @unique
+  avatar          String?
+  role            Role            @default(BUYER)
+  badge           String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  products        Product[]       @relation("SellerProducts")
+  orders          Order[]         @relation("BuyerOrders")
+  assignedTickets SupportTicket[] @relation("AgentTickets")
+  createdTickets  SupportTicket[] @relation("CustomerTickets")
+}
+
+model Product {
+  id          String      @id @default(cuid())
+  title       String
+  description String
+  price       Float
+  category    String
+  image       String
+  condition   String
+  inStock     Boolean     @default(true)
+  rating      Float       @default(5.0)
+  reviewCount Int         @default(0)
+  sellerId    String
+  seller      User        @relation("SellerProducts", fields: [sellerId], references: [id])
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  orderItems  OrderItem[]
+}
+
+model Order {
+  id          String          @id @default(cuid())
+  orderNumber String          @unique
+  buyerId     String
+  buyer       User            @relation("BuyerOrders", fields: [buyerId], references: [id])
+  totalAmount Float
+  status      String          @default("PAID")
+  createdAt   DateTime        @default(now())
+  items       OrderItem[]
+  tickets     SupportTicket[]
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  price     Float
+  quantity  Int      @default(1)
+}
+
+model SupportTicket {
+  id           String         @id @default(cuid())
+  ticketNumber String         @unique
+  customerId   String
+  customer     User           @relation("CustomerTickets", fields: [customerId], references: [id])
+  agentId      String?
+  agent        User?          @relation("AgentTickets", fields: [agentId], references: [id])
+  orderId      String?
+  order        Order?         @relation(fields: [orderId], references: [id])
+  status       TicketStatus   @default(OPEN)
+  priority     TicketPriority @default(MEDIUM)
+  subject      String
+  channelKey   String
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+model CachedTranslation {
+  id         String   @id @default(cuid())
+  sourceHash String   @unique
+  sourceLang String
+  targetLang String
+  sourceText String
+  translated String
+  createdAt  DateTime @default(now())
+}
