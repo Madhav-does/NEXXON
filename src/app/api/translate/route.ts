@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
             translated,
           },
         })
-        .catch((e) => console.warn('[Translate Cache Write Error]', e));
+        .catch((e: any) => console.warn('[Translate Cache Write Error]', e));
     }
 
     return NextResponse.json({
