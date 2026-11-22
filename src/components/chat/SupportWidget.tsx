@@ -110,7 +110,10 @@ export const SupportWidget: React.FC = () => {
                 <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-400 rounded-full ring-2 ring-blue-600" />
               </div>
               <div>
-                <h4 className="font-semibold text-sm leading-tight">Customer Support Hub</h4>
+                <h4 className="font-semibold text-sm leading-tight flex items-center gap-1.5">
+                  <img src="/logo.jpg" alt="DYAZO" className="w-4 h-4 rounded-sm object-cover" />
+                  <span>DYAZO Support Hub</span>
+                </h4>
                 <p className="text-[11px] text-blue-100 flex items-center gap-1 mt-0.5">
                   <span className="inline-block w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>
                   Nexconn Multi-Lingual Support

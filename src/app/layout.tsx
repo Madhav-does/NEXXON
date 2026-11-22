@@ -14,9 +14,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'NEXXON Marketplace & Customer Support — Real-time Multi-Lingual Nexconn Chat',
+  title: 'DYAZO Marketplace & Customer Support — Real-time Multi-Lingual Nexconn Chat',
   description:
     'Full-stack Marketplace and Customer Support web application built with Next.js App Router, Tailwind CSS, multi-language translation, and the Nexconn Chat Web SDK.',
+  icons: {
+    icon: '/logo.jpg',
+    apple: '/logo.jpg',
+  },
 };
 
 export default function RootLayout({

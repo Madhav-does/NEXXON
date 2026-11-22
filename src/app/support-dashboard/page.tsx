@@ -197,11 +197,11 @@ export default function SupportDashboardPage() {
       <div className="bg-white dark:bg-[#1a1d27] border-b border-gray-200 dark:border-[#2d3148] px-6 py-4 transition-colors">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-600 dark:bg-indigo-500 text-white flex items-center justify-center shadow-md">
-              <Headphones className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-xl overflow-hidden border border-gray-200 dark:border-[#2d3148] shadow-md shrink-0 bg-[#0d0e17]">
+              <img src="/logo.jpg" alt="DYAZO" className="w-full h-full object-cover" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-gray-900 dark:text-white">Support Agent Dispatch Center</h1>
+              <h1 className="text-lg font-bold text-gray-900 dark:text-white">DYAZO Support Dispatch Center</h1>
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 Queue-based customer dispatching, SLA tracking & multi-language translated resolution via Nexconn Chat
               </p>

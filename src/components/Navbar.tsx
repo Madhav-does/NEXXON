@@ -62,16 +62,20 @@ export const Navbar: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
         {/* Brand */}
         <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-none bg-[#c86d51] flex items-center justify-center text-white shadow-sm">
-              <ShoppingBag className="w-4 h-4" />
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 rounded-xl overflow-hidden border border-gray-200 dark:border-[#27282f] bg-[#0c0e17] shrink-0 shadow-sm flex items-center justify-center">
+              <img
+                src="/logo.jpg"
+                alt="DYAZO"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
             </div>
             <div>
-              <span className="font-editorial text-xl tracking-tight text-[#111215] dark:text-[#f9f8f6] font-normal uppercase">
-                NEXXON
+              <span className="font-editorial text-xl tracking-tight text-[#111215] dark:text-[#f9f8f6] font-normal uppercase leading-none block">
+                DYAZO
               </span>
-              <span className="font-mono-tag text-[9px] text-[#c86d51] font-semibold block -mt-1 tracking-widest uppercase">
-                Archive &amp; Escrow
+              <span className="font-mono-tag text-[9px] text-[#c86d51] dark:text-[#818cf8] font-semibold block tracking-widest uppercase mt-0.5">
+                Marketplace &amp; Support
               </span>
             </div>
           </Link>

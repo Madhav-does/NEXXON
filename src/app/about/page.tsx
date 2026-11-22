@@ -28,21 +28,28 @@ export default function AboutPage() {
       {/* Hero Section */}
       <section className="bg-gradient-to-b from-blue-50/90 via-white to-gray-50/70 dark:from-[#161a29] dark:via-[#12141f] dark:to-[#0f1117] pt-12 pb-14 border-b border-gray-200 dark:border-[#2d3148] transition-colors">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 text-xs font-semibold mb-4 border border-blue-200/60 dark:border-blue-800/60">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>NEXXON Platform Documentation & User Guide</span>
+          <div className="flex items-center gap-3.5 mb-5">
+            <img
+              src="/logo.jpg"
+              alt="DYAZO"
+              className="w-12 h-12 rounded-xl object-cover shadow-sm border border-gray-200 dark:border-[#2d3148]"
+            />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 text-xs font-semibold border border-blue-200/60 dark:border-blue-800/60">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>DYAZO Platform Documentation & User Guide</span>
+            </div>
           </div>
 
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-white tracking-tight leading-tight">
             How to Use{' '}
             <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-              NEXXON
+              DYAZO
             </span>{' '}
             Marketplace & Support
           </h1>
 
           <p className="mt-4 text-base sm:text-lg text-gray-600 dark:text-gray-300 max-w-3xl leading-relaxed">
-            NEXXON is a real-time e-commerce and customer service platform built with Next.js 16,
+            DYAZO is a real-time circular e-commerce and customer service platform built with Next.js 16,
             Tailwind CSS 4, Nexconn Web SDK, multi-language live translation, and Antseed Seller AI models.
             Here is everything you need to know to test and use each feature.
           </p>
